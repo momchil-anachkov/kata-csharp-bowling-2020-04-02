@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace Bowling
 {
-    public class BowlingGame
+    public partial class BowlingGame
     {
-        private readonly List<Frame> _finishedFrames = new List<Frame>();
+        private readonly List<BowlingFrame> _finishedFrames = new List<BowlingFrame>();
         private readonly List<int> _bonusRolls = new List<int>();
-        private Frame _currentFrame = new Frame();
+        private BowlingFrame _currentFrame = new BowlingFrame();
 
         public void Roll(byte knockedPins)
         {
@@ -21,40 +21,20 @@ namespace Bowling
         }
         
         public bool Finished =>
-            this._finishedFrames.Count == 10 && this._finishedFrames.Last().RollSum < 10 ||
+            this._finishedFrames.Count == 10 && this._finishedFrames.Last().Rolls.Sum() < 10 ||
             this._finishedFrames.Count == 10 && this._finishedFrames.Last().IsSpare && this._bonusRolls.Count == 1 ||
             this._finishedFrames.Count == 10 && this._finishedFrames.Last().IsStrike && this._bonusRolls.Count == 2;
+
+        public List<BowlingFrame> FinishedFrames => new List<BowlingFrame>(this._finishedFrames);
+
+        public List<int> BonusRolls => _bonusRolls;
 
         private void FinalizeFrame()
         {
             this._finishedFrames.Add(this._currentFrame);
-            this._currentFrame = new Frame();
+            this._currentFrame = new BowlingFrame();
         }
         
         private bool RegularRollsAreFinished => this._finishedFrames.Count == 10;
-
-        private class Frame
-        {
-            private byte _pinsLeft = 10;
-            private List<int> _rolls = new List<int>();
-
-            public void Roll(byte knockedPins)
-            {
-                if (knockedPins > 10) throw new ArgumentException();
-                if (knockedPins > this._pinsLeft) throw new ArgumentException();
-
-                this._rolls.Add(knockedPins);
-                this._pinsLeft -= knockedPins;
-            }
-
-            public bool Finished =>
-                this._pinsLeft == 0 || this._rolls.Count == 2;
-
-            public int RollSum => this._rolls.Sum();
-
-            public bool IsStrike => this._pinsLeft == 0 && this._rolls.Count == 1;
-            
-            public bool IsSpare => this._pinsLeft == 0 && this._rolls.Count == 2;
-        }
     }
 }
